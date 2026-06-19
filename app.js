@@ -441,6 +441,14 @@
   function mapApiName(n) {
     return API_NAME_MAP[n] || n;
   }
+  function toEpsnDate(matchDate) {
+    const [day, month] = String(matchDate).split("/").map((part) => parseInt(part, 10));
+    const date = new Date(2026, month - 1, day);
+    const year = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${year}${mm}${dd}`;
+  }
   function cloneState(value) {
     return JSON.parse(JSON.stringify(value));
   }
@@ -618,17 +626,37 @@
     return { state: autoBracket.state, updated, bracketChanged: autoBracket.changed };
   }
   async function fetchMatchResults() {
-    const EDGE = "https://cjxgjtzmwttapujhxvoo.supabase.co/functions/v1/football-proxy";
-    const res = await fetch(EDGE, {
-      headers: {
-        "Authorization": "Bearer " + SUPA_KEY,
-        "Content-Type": "application/json"
-      }
-    });
-    if (!res.ok) throw new Error("HTTP " + res.status + " \u2014 " + res.statusText);
-    const d = await res.json();
-    if (d.error) throw new Error(d.error);
-    return d.matches || [];
+    const dates = [...new Set(GROUP_MATCHES.map((match) => toEpsnDate(match.d)))];
+    const allMatches = [];
+    for (const date of dates) {
+      const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${date}`;
+      const res = await fetch(url, { method: "GET", cache: "no-store" });
+      if (!res.ok) throw new Error("HTTP " + res.status + " \u2014 " + res.statusText);
+      const data = await res.json();
+      ((data == null ? void 0 : data.events) || []).forEach((event) => {
+        var _a, _b, _c, _d, _e, _f, _g;
+        const competition = ((_a = event == null ? void 0 : event.competitions) == null ? void 0 : _a[0]) || {};
+        const competitors = competition.competitors || [];
+        const home = competitors.find((competitor) => competitor.homeAway === "home");
+        const away = competitors.find((competitor) => competitor.homeAway === "away");
+        const homeScore = Number((_c = (_b = home == null ? void 0 : home.score) == null ? void 0 : _b.displayValue) != null ? _c : home == null ? void 0 : home.score);
+        const awayScore = Number((_e = (_d = away == null ? void 0 : away.score) == null ? void 0 : _d.displayValue) != null ? _e : away == null ? void 0 : away.score);
+        const isFinished = Boolean(((_f = competition.status) == null ? void 0 : _f.type) && (((_g = competition.status.type) == null ? void 0 : _g.completed) || competition.status.type.state === "post"));
+        if (!home || !away) return;
+        allMatches.push({
+          status: isFinished ? "FINISHED" : ((_a = competition.status) == null ? void 0 : _a.type) || "SCHEDULED",
+          homeTeam: { name: ((_b = home.team) == null ? void 0 : _b.displayName) || ((_c = home.team) == null ? void 0 : _c.shortDisplayName) || "" },
+          awayTeam: { name: ((_d = away.team) == null ? void 0 : _d.displayName) || ((_e = away.team) == null ? void 0 : _e.shortDisplayName) || "" },
+          score: {
+            fullTime: {
+              home: Number.isFinite(homeScore) ? homeScore : null,
+              away: Number.isFinite(awayScore) ? awayScore : null
+            }
+          }
+        });
+      });
+    }
+    return allMatches;
   }
   function AdminTab({ data, setData, onSave }) {
     var _a, _b;
