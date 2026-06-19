@@ -669,9 +669,10 @@
       if (hs === "" || hs === void 0 || as_ === "" || as_ === void 0) return;
       const nb = JSON.parse(JSON.stringify(data));
       nb.matchResults[matchId] = { hs: parseInt(hs), as: parseInt(as_), done: true, status: "FINISHED" };
-      setData(nb);
-      const ok = await onSave(nb);
-      show(ok ? "\u2713 Placar salvo para todos!" : "Erro ao salvar.", ok ? "ok" : "err");
+      const auto = autoPopulateBracket(nb);
+      setData(auto.state);
+      const ok = await onSave(auto.state);
+      show(ok ? auto.changed ? "\u26A1 Mata-mata montado automaticamente!" : "\u2713 Placar salvo para todos!" : "Erro ao salvar.", ok ? "ok" : "err");
     }
     async function clearAll() {
       if (!confirm("Apagar TODOS os dados do bol\xE3o? Isso n\xE3o pode ser desfeito!")) return;
@@ -771,22 +772,6 @@
         },
         r.done ? "\u2713" : "OK"
       ));
-    }))), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: "900", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: "8px" } }, "Fase de Grupos \u2014 Inserir Placares"), /* @__PURE__ */ React.createElement("div", { className: "gfilter" }, GROUPS.map((gr) => /* @__PURE__ */ React.createElement("button", { key: gr.id, onClick: () => setAg(gr.id), className: `gfbtn${ag === gr.id ? " on" : ""}` }, gr.id))), /* @__PURE__ */ React.createElement("div", { className: "gc", style: { marginBottom: "16px" } }, /* @__PURE__ */ React.createElement("div", { className: "gh" }, /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", gap: "8px" } }, /* @__PURE__ */ React.createElement("span", { className: "gname" }, "Grupo ", ag), /* @__PURE__ */ React.createElement("span", { style: { display: "flex", gap: "2px" } }, (_b = GROUPS.find((g) => g.id === ag)) == null ? void 0 : _b.teams.map((t) => /* @__PURE__ */ React.createElement("span", { key: t.n, style: { fontSize: "14px" } }, t.f)))), /* @__PURE__ */ React.createElement("span", { className: "gstatus" }, done, "/", gMatches.length, " inseridos")), /* @__PURE__ */ React.createElement("div", { style: { padding: "8px 12px" } }, gMatches.map((m) => {
-      var _a2, _b2;
-      const r = data.matchResults[m.id] || {};
-      const vh = ((_a2 = vals[m.id]) == null ? void 0 : _a2.hs) !== void 0 ? vals[m.id].hs : r.hs !== void 0 ? r.hs : "";
-      const va = ((_b2 = vals[m.id]) == null ? void 0 : _b2.as) !== void 0 ? vals[m.id].as : r.as !== void 0 ? r.as : "";
-      return /* @__PURE__ */ React.createElement("div", { key: m.id, style: { display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px", padding: "6px 0", borderBottom: "1px solid rgba(255,255,255,.04)" } }, /* @__PURE__ */ React.createElement("span", { style: { fontSize: "9px", color: "rgba(255,255,255,.25)", width: "24px", fontWeight: "700", flexShrink: 0 } }, m.d), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "16px", flexShrink: 0 } }, teamFlag(m.hm)), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "11px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: "700" } }, m.hm.length > 8 ? m.hm.slice(0, 8) + "\u2026" : m.hm), /* @__PURE__ */ React.createElement("input", { type: "number", min: "0", max: "20", className: "ainp", value: vh, placeholder: "0", onChange: (e) => setVals((v) => ({ ...v, [m.id]: { ...v[m.id], hs: e.target.value } })) }), /* @__PURE__ */ React.createElement("span", { style: { fontFamily: "'Bebas Neue',sans-serif", fontSize: "16px", color: "rgba(255,255,255,.2)" } }, "\u2013"), /* @__PURE__ */ React.createElement("input", { type: "number", min: "0", max: "20", className: "ainp", value: va, placeholder: "0", onChange: (e) => setVals((v) => ({ ...v, [m.id]: { ...v[m.id], as: e.target.value } })) }), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "11px", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: "700", textAlign: "right" } }, m.aw.length > 8 ? m.aw.slice(0, 8) + "\u2026" : m.aw), /* @__PURE__ */ React.createElement("span", { style: { fontSize: "16px", flexShrink: 0 } }, teamFlag(m.aw)), /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          onClick: () => {
-            var _a3, _b3;
-            return saveMatch(m.id, ((_a3 = vals[m.id]) == null ? void 0 : _a3.hs) !== void 0 ? vals[m.id].hs : r.hs, ((_b3 = vals[m.id]) == null ? void 0 : _b3.as) !== void 0 ? vals[m.id].as : r.as);
-          },
-          style: { background: r.done ? "rgba(48,209,88,.15)" : "rgba(10,132,255,.2)", border: `1px solid ${r.done ? "rgba(48,209,88,.3)" : "rgba(10,132,255,.35)"}`, borderRadius: "6px", color: "#fff", fontSize: "10px", fontWeight: "800", padding: "4px 8px", cursor: "pointer", flexShrink: 0 }
-        },
-        r.done ? "\u2713" : "OK"
-      ));
     }))), /* @__PURE__ */ React.createElement("div", { style: { fontWeight: "900", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,.3)", marginBottom: "8px" } }, "Mata-Mata \u2014 Jogos e Placares"), [["r32", "32 Avos"], ["r16", "Oitavas"], ["qf", "Quartas"], ["sf", "Semis"], ["f", "\u{1F3C6} Final"]].map(([rk, rl]) => {
       var _a2;
       return /* @__PURE__ */ React.createElement("div", { key: rk, style: { marginBottom: "10px" } }, /* @__PURE__ */ React.createElement("div", { className: "rlbl" }, rl), (((_a2 = data.bracket) == null ? void 0 : _a2[rk]) || []).map((m, idx) => {
@@ -870,9 +855,13 @@
     const dataRef = useRef(data);
     useEffect(() => {
       dbLoad().then((d) => {
-        setData(d);
+        const auto = autoPopulateBracket(d);
+        setData(auto.state);
         setLoading(false);
         setLastSync((/* @__PURE__ */ new Date()).toISOString());
+        if (auto.changed) {
+          dbSave(auto.state);
+        }
       });
     }, []);
     useEffect(() => {
@@ -886,8 +875,13 @@
         (payload) => {
           var _a;
           if ((_a = payload.new) == null ? void 0 : _a.data) {
-            setData({ ...DEFAULT_STATE, ...payload.new.data, bracket: normalizeBracket(payload.new.data.bracket) });
+            const incoming = { ...DEFAULT_STATE, ...payload.new.data, bracket: normalizeBracket(payload.new.data.bracket) };
+            const auto = autoPopulateBracket(incoming);
+            setData(auto.state);
             setLastSync((/* @__PURE__ */ new Date()).toISOString());
+            if (auto.changed) {
+              dbSave(auto.state);
+            }
           }
         }
       ).subscribe();
@@ -926,7 +920,13 @@
     }, [loading]);
     const onSave = useCallback(async (override) => {
       setSaving(true);
-      const ok = await dbSave(override || data);
+      const target = override || data;
+      const auto = autoPopulateBracket(target);
+      if (auto.changed) {
+        dataRef.current = auto.state;
+        setData(auto.state);
+      }
+      const ok = await dbSave(auto.state);
       setSaving(false);
       if (ok) setLastSync((/* @__PURE__ */ new Date()).toISOString());
       return ok;
@@ -934,7 +934,11 @@
     async function doSync() {
       setSaving(true);
       const d = await dbLoad();
-      setData(d);
+      const auto = autoPopulateBracket(d);
+      setData(auto.state);
+      if (auto.changed) {
+        await dbSave(auto.state);
+      }
       setLastSync((/* @__PURE__ */ new Date()).toISOString());
       setSaving(false);
     }
